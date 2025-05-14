@@ -1,6 +1,8 @@
-
 ![k8s-pilot-ci](https://github.com/user-attachments/assets/e2bc58d2-5ede-448b-bf4f-a3bb2c02cea4)
 
+<a href="https://glama.ai/mcp/servers/@bourbonkk/k8s-pilot">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@bourbonkk/k8s-pilot/badge" alt="k8s-pilot MCP server" />
+</a>
 
 [![smithery badge](https://smithery.ai/badge/@bourbonkk/k8s-pilot)](https://smithery.ai/server/@bourbonkk/k8s-pilot) [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/8645910c-340b-4f56-a03e-2c90d115a76f)
 
