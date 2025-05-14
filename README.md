@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/bourbonkk-k8s-pilot-badge.png)](https://mseep.ai/app/bourbonkk-k8s-pilot)
+
 
 ![k8s-pilot-ci](https://github.com/user-attachments/assets/e2bc58d2-5ede-448b-bf4f-a3bb2c02cea4)
 
