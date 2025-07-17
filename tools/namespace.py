@@ -5,6 +5,7 @@ from kubernetes.client import CoreV1Api, V1Namespace, V1ObjectMeta
 from kubernetes.client.rest import ApiException
 
 from core.context import use_current_context
+from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 
@@ -65,6 +66,7 @@ def get_namespace_details(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[str, str]] = None):
     """
     Create a new namespace.
@@ -110,6 +112,7 @@ def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[st
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def delete_namespace(context_name: str, namespace: str):
     """
     Delete a namespace and all resources within it.
@@ -149,6 +152,7 @@ def delete_namespace(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def add_namespace_label(context_name: str, namespace: str, label_key: str, label_value: str):
     """
     Add or update a label on a namespace.
@@ -200,6 +204,7 @@ def add_namespace_label(context_name: str, namespace: str, label_key: str, label
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def remove_namespace_label(context_name: str, namespace: str, label_key: str):
     """
     Remove a label from a namespace.
@@ -331,6 +336,7 @@ def list_namespace_resources(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def set_namespace_resource_quota(context_name: str, namespace: str,
                                  cpu_limit: Optional[str] = None,
                                  memory_limit: Optional[str] = None,

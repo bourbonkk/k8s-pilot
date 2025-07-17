@@ -1,5 +1,6 @@
 from kubernetes.client import AppsV1Api, V1ReplicaSet, V1ObjectMeta, V1PodTemplateSpec, V1PodSpec, V1Container, V1LabelSelector
 from core.context import use_current_context
+from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 
@@ -25,6 +26,7 @@ def replicaset_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def replicaset_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict):
     """
     Create a ReplicaSet in the specified namespace.
@@ -82,6 +84,7 @@ def replicaset_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def replicaset_update(context_name: str, namespace: str, name: str, image: str, replicas: int):
     """
     Update an existing ReplicaSet in the specified namespace.
@@ -106,6 +109,7 @@ def replicaset_update(context_name: str, namespace: str, name: str, image: str, 
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def replicaset_delete(context_name: str, namespace: str, name: str):
     """
     Delete a ReplicaSet from the specified namespace.

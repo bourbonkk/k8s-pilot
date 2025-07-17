@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1Secret, V1ObjectMeta
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 import base64
 
 
@@ -26,6 +27,7 @@ def secret_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def secret_create(context_name: str, namespace: str, name: str, data: dict, secret_type: str = "Opaque"):
     """
     Create a Secret in the specified namespace.
@@ -77,6 +79,7 @@ def secret_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def secret_update(context_name: str, namespace: str, name: str, data: dict):
     """
     Update an existing Secret in the specified namespace.
@@ -100,6 +103,7 @@ def secret_update(context_name: str, namespace: str, name: str, data: dict):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def secret_delete(context_name: str, namespace: str, name: str):
     """
     Delete a Secret from the specified namespace.

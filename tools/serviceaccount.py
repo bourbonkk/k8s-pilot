@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1ServiceAccount, V1ObjectMeta
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -25,6 +26,7 @@ def serviceaccount_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def serviceaccount_create(context_name: str, namespace: str, name: str, labels: dict = None):
     """
     Create a ServiceAccount in the specified namespace.
@@ -71,6 +73,7 @@ def serviceaccount_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def serviceaccount_delete(context_name: str, namespace: str, name: str):
     """
     Delete a ServiceAccount from the specified namespace.

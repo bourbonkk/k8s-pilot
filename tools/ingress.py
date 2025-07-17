@@ -3,6 +3,7 @@ from kubernetes.client import NetworkingV1Api, V1Ingress, V1ObjectMeta, V1Ingres
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -26,6 +27,7 @@ def ingress_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def ingress_create(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int):
     """
     Create an Ingress in the specified namespace.
@@ -99,6 +101,7 @@ def ingress_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def ingress_update(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int):
     """
     Update an existing Ingress in the specified namespace.
@@ -125,6 +128,7 @@ def ingress_update(context_name: str, namespace: str, name: str, host: str, serv
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def ingress_delete(context_name: str, namespace: str, name: str):
     """
     Delete an Ingress from the specified namespace.

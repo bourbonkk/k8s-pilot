@@ -15,6 +15,7 @@ With powerful tools and intuitive APIs, you can observe and control all your clu
 
 - 🔄 Supports **multi-cluster context switching**
 - 🔧 Enables **CRUD operations** on most common Kubernetes resources
+- 🔒 **Readonly mode** for safe cluster inspection
 - ⚙️ Powered by [MCP](https://modelcontextprotocol.io/) for Claude AI and beyond
 
 ---
@@ -46,6 +47,53 @@ cd k8s-pilot
 uv run --with mcp[cli] mcp run k8s_pilot.py
 ```
 
+## Usage
+
+### Normal Mode (Full Access)
+```bash
+# Start with full read/write access
+uv run --with mcp[cli] mcp run k8s_pilot.py
+```
+
+### Readonly Mode (Safe Inspection)
+```bash
+# Start in readonly mode - only read operations allowed
+uv run --with mcp[cli] python k8s_pilot.py --readonly
+```
+
+### Command Line Options
+```bash
+# Show help
+uv run --with mcp[cli] python k8s_pilot.py --help
+```
+
+## Readonly Mode
+
+The `--readonly` flag enables a safety mode that prevents any write operations to your Kubernetes clusters. This is perfect for:
+
+- **Cluster inspection** without risk of accidental changes
+- **Audit scenarios** where you need to view but not modify
+- **Learning environments** where you want to explore safely
+- **Production monitoring** with zero risk of modifications
+
+### Protected Operations (Blocked in Readonly Mode)
+- `pod_create`, `pod_update`, `pod_delete`
+- `deployment_create`, `deployment_update`, `deployment_delete`
+- `service_create`, `service_update`, `service_delete`
+- `configmap_create`, `configmap_update`, `configmap_delete`
+- `secret_create`, `secret_update`, `secret_delete`
+- `namespace_create`, `namespace_delete`
+- All other create/update/delete operations
+
+### Allowed Operations (Always Available)
+- `pod_list`, `pod_detail`, `pod_logs`
+- `deployment_list`, `deployment_get`
+- `service_list`, `service_get`
+- `configmap_list`, `configmap_get`
+- `secret_list`, `secret_get`
+- `namespace_list`, `namespace_get`
+- All other list/get operations
+
 ## Usage with Claude Desktop
 
 Use this config to run k8s_pilot MCP server from within Claude:
@@ -64,6 +112,28 @@ Use this config to run k8s_pilot MCP server from within Claude:
         "mcp",
         "run",
         "k8s_pilot.py"
+      ]
+    }
+  }
+}
+```
+
+For readonly mode, use this configuration:
+
+```json
+{
+  "mcpServers": {
+    "k8s_pilot_readonly": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "<path-to-cloned-repo>/k8s-pilot",
+        "run",
+        "--with",
+        "mcp[cli]",
+        "python",
+        "k8s_pilot.py",
+        "--readonly"
       ]
     }
   }

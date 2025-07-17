@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1PersistentVolumeClaim, V1ObjectMeta, 
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -25,6 +26,7 @@ def pvc_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pvc_create(context_name: str, namespace: str, name: str, storage: str, access_modes: list, storage_class: str = None):
     """
     Create a PersistentVolumeClaim in the specified namespace.
@@ -80,6 +82,7 @@ def pvc_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pvc_update(context_name: str, namespace: str, name: str, labels: dict):
     """
     Update an existing PersistentVolumeClaim's metadata (e.g., labels).
@@ -102,6 +105,7 @@ def pvc_update(context_name: str, namespace: str, name: str, labels: dict):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pvc_delete(context_name: str, namespace: str, name: str):
     """
     Delete a PersistentVolumeClaim from the specified namespace.

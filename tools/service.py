@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1Service, V1ObjectMeta, V1ServiceSpec,
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -25,6 +26,7 @@ def service_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def service_create(context_name: str, namespace: str, name: str, selector: dict, ports: list, service_type: str = "ClusterIP"):
     """
     Create a Service in the specified namespace.
@@ -80,6 +82,7 @@ def service_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def service_update(context_name: str, namespace: str, name: str, labels: dict):
     """
     Update an existing Service's metadata (e.g., labels).
@@ -102,6 +105,7 @@ def service_update(context_name: str, namespace: str, name: str, labels: dict):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def service_delete(context_name: str, namespace: str, name: str):
     """
     Delete a Service from the specified namespace.

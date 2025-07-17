@@ -2,6 +2,7 @@ from kubernetes.client import AppsV1Api, V1DaemonSet, V1ObjectMeta, V1PodTemplat
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -25,6 +26,7 @@ def daemonset_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def daemonset_create(context_name: str, namespace: str, name: str, image: str, labels: dict):
     """
     Create a DaemonSet in the specified namespace.
@@ -75,6 +77,7 @@ def daemonset_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def daemonset_update(context_name: str, namespace: str, name: str, image: str):
     """
     Update an existing DaemonSet in the specified namespace.
@@ -97,6 +100,7 @@ def daemonset_update(context_name: str, namespace: str, name: str, image: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def daemonset_delete(context_name: str, namespace: str, name: str):
     """
     Delete a DaemonSet from the specified namespace.

@@ -2,6 +2,7 @@ from kubernetes.client import RbacAuthorizationV1Api, V1Role, V1ClusterRole, V1O
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -25,6 +26,7 @@ def role_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def role_create(context_name: str, namespace: str, name: str, rules: list):
     """
     Create a Role in the specified namespace.
@@ -71,6 +73,7 @@ def role_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def role_delete(context_name: str, namespace: str, name: str):
     """
     Delete a Role from the specified namespace.
@@ -108,6 +111,7 @@ def clusterrole_list(context_name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def clusterrole_create(context_name: str, name: str, rules: list):
     """
     Create a ClusterRole in the cluster.
@@ -152,6 +156,7 @@ def clusterrole_get(context_name: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def clusterrole_delete(context_name: str, name: str):
     """
     Delete a ClusterRole from the cluster.

@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1PersistentVolume, V1ObjectMeta, V1Per
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -24,6 +25,7 @@ def pv_list(context_name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pv_create(context_name: str, name: str, capacity: str, access_modes: list, storage_class: str, host_path: str):
     """
     Create a PersistentVolume in the cluster.
@@ -79,6 +81,7 @@ def pv_get(context_name: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pv_update(context_name: str, name: str, labels: dict):
     """
     Update an existing PersistentVolume's metadata (e.g., labels).
@@ -100,6 +103,7 @@ def pv_update(context_name: str, name: str, labels: dict):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pv_delete(context_name: str, name: str):
     """
     Delete a PersistentVolume from the cluster.

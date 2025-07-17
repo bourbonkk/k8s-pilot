@@ -1,6 +1,7 @@
 from typing import Optional, Dict, List
 
 from core.context import use_current_context
+from core.permissions import check_readonly_permission
 from server.server import mcp
 from kubernetes.client import CoreV1Api
 from core.kubeconfig import get_api_clients
@@ -174,6 +175,7 @@ def pod_detail(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pod_create(context_name: str, namespace: str, name: str, image: str,
                labels: Optional[Dict[str, str]] = None,
                command: Optional[List[str]] = None,
@@ -240,6 +242,7 @@ def pod_create(context_name: str, namespace: str, name: str, image: str,
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pod_update(context_name: str, namespace: str, name: str,
                labels: Optional[Dict[str, str]] = None):
     """
@@ -281,6 +284,7 @@ def pod_update(context_name: str, namespace: str, name: str,
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def pod_delete(context_name: str, namespace: str, name: str):
     """
     Delete a pod from the specified namespace.

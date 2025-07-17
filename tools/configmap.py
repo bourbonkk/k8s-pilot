@@ -1,4 +1,5 @@
 from core.context import use_current_context
+from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 from kubernetes.client import CoreV1Api
@@ -25,6 +26,7 @@ def configmap_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def configmap_create(context_name: str, namespace: str, name: str, data: dict):
     """
     Create a ConfigMap in the specified namespace.
@@ -70,6 +72,7 @@ def configmap_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def configmap_update(context_name: str, namespace: str, name: str, data: dict):
     """
     Update an existing ConfigMap in the specified namespace.
@@ -92,6 +95,7 @@ def configmap_update(context_name: str, namespace: str, name: str, data: dict):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def configmap_delete(context_name: str, namespace: str, name: str):
     """
     Delete a ConfigMap from the specified namespace.

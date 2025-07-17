@@ -1,5 +1,6 @@
 from kubernetes.client import AppsV1Api, V1StatefulSet, V1ObjectMeta, V1LabelSelector, V1PodTemplateSpec, V1PodSpec, V1Container, V1StatefulSetSpec
 from core.context import use_current_context
+from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 
@@ -25,6 +26,7 @@ def statefulset_list(context_name: str, namespace: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def statefulset_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict):
     """
     Create a StatefulSet in the specified namespace.
@@ -83,6 +85,7 @@ def statefulset_get(context_name: str, namespace: str, name: str):
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def statefulset_update(context_name: str, namespace: str, name: str, image: str, replicas: int):
     """
     Update an existing StatefulSet in the specified namespace.
@@ -107,6 +110,7 @@ def statefulset_update(context_name: str, namespace: str, name: str, image: str,
 
 @mcp.tool()
 @use_current_context
+@check_readonly_permission
 def statefulset_delete(context_name: str, namespace: str, name: str):
     """
     Delete a StatefulSet from the specified namespace.
