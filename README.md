@@ -85,6 +85,16 @@ uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --transport streamable-h
 uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --help
 ```
 
+### Run via Docker
+You can run k8s-pilot directly using the published Docker image without installing `uv` locally. 
+Make sure to mount your `~/.kube/config` so the container can access your clusters.
+
+```bash
+docker run -i --rm \
+  -v ~/.kube/config:/root/.kube/config \
+  ghcr.io/bourbonkk/k8s-pilot:latest
+```
+
 ## Readonly Mode
 
 The `--readonly` flag enables a safety mode that prevents any write operations to your Kubernetes clusters. This is perfect for:
@@ -168,7 +178,27 @@ For readonly mode, use this configuration:
 }
 ```
 
-Replace <path-to-cloned-repo> with the actual directory where you cloned the repo.
+For Docker, use this configuration (replace `YOUR_USERNAME` with your actual Mac user name):
+
+```json
+{
+  "mcpServers": {
+    "k8s_pilot_docker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/Users/YOUR_USERNAME/.kube/config:/root/.kube/config",
+        "ghcr.io/bourbonkk/k8s-pilot:latest"
+      ]
+    }
+  }
+}
+```
+
+Replace `<path-to-cloned-repo>` with the actual directory where you cloned the repo.
 
 ## Scenario
 Create a Deployment using the nginx:latest image in the pypy namespace, and also create a Service that connects to it.

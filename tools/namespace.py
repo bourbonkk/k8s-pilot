@@ -397,7 +397,7 @@ async def set_namespace_resource_quota(context_name: str, namespace: str,
 
         # Check if quota already exists
         try:
-            existing_quota = core_v1.read_namespaced_resource_quota(quota_name, namespace)
+            core_v1.read_namespaced_resource_quota(quota_name, namespace)
             # Update existing quota
             body = {
                 "spec": {
