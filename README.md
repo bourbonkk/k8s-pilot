@@ -17,6 +17,9 @@ With powerful tools and intuitive APIs, you can observe and control all your clu
 - 🔧 Enables **CRUD operations** on most common Kubernetes resources
 - 🔒 **Readonly mode** for safe cluster inspection
 - ⚙️ Powered by [MCP](https://modelcontextprotocol.io/) for Claude AI and beyond
+- 🌐 **Streamable HTTP** transport support for remote access
+- 🤖 **MCP Prompts** for guided operations
+- 📝 **Context-aware logging** for write operations
 
 ---
 
@@ -44,27 +47,42 @@ git clone https://github.com/bourbonkk/k8s-pilot.git
 cd k8s-pilot
 
 # Launch with uv + MCP
-uv run --with mcp[cli] mcp run k8s_pilot.py
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py
 ```
+
+## 🆕 What's New in v2.0
+
+- **Streamable HTTP Transport**: Remote cluster management via HTTP (in addition to stdio)
+- **MCP Prompts**: Built-in prompt templates for common K8s operations
+- **Context-aware Logging**: Write operations now report progress via MCP context
+- **Bug Fixes**: Fixed missing API clients for Ingress and RBAC resources
+- **Security**: Added readonly checks for node modification operations
+- **Dockerfile**: Modernized with `uv` package manager for faster builds
 
 ## Usage
 
 ### Normal Mode (Full Access)
 ```bash
 # Start with full read/write access
-uv run --with mcp[cli] mcp run k8s_pilot.py
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py
 ```
 
 ### Readonly Mode (Safe Inspection)
 ```bash
 # Start in readonly mode - only read operations allowed
-uv run --with mcp[cli] python k8s_pilot.py --readonly
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --readonly
+```
+
+### Streamable HTTP Mode (Remote Access)
+```bash
+# Start with Streamable HTTP transport for remote access
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --transport streamable-http
 ```
 
 ### Command Line Options
 ```bash
 # Show help
-uv run --with mcp[cli] python k8s_pilot.py --help
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --help
 ```
 
 ## Readonly Mode
@@ -94,6 +112,17 @@ The `--readonly` flag enables a safety mode that prevents any write operations t
 - `namespace_list`, `namespace_get`
 - All other list/get operations
 
+## MCP Prompts
+
+k8s-pilot includes built-in prompt templates for common operations:
+
+| Prompt | Description |
+|--------|-------------|
+| `troubleshoot_pod` | Step-by-step pod troubleshooting guide |
+| `deployment_guide` | Guided application deployment workflow |
+| `cluster_health_check` | Comprehensive cluster health assessment |
+| `namespace_cleanup` | Safe namespace cleanup procedure |
+
 ## Usage with Claude Desktop
 
 Use this config to run k8s_pilot MCP server from within Claude:
@@ -108,9 +137,8 @@ Use this config to run k8s_pilot MCP server from within Claude:
         "<path-to-cloned-repo>/k8s-pilot",
         "run",
         "--with",
-        "mcp[cli]",
-        "mcp",
-        "run",
+        "mcp[cli]>=1.28.0,<2",
+        "python",
         "k8s_pilot.py"
       ]
     }
@@ -130,7 +158,7 @@ For readonly mode, use this configuration:
         "<path-to-cloned-repo>/k8s-pilot",
         "run",
         "--with",
-        "mcp[cli]",
+        "mcp[cli]>=1.28.0,<2",
         "python",
         "k8s_pilot.py",
         "--readonly"

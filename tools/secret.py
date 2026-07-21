@@ -4,6 +4,7 @@ from core.kubeconfig import get_api_clients
 from server.server import mcp
 from core.permissions import check_readonly_permission
 import base64
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -28,7 +29,7 @@ def secret_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def secret_create(context_name: str, namespace: str, name: str, data: dict, secret_type: str = "Opaque"):
+async def secret_create(context_name: str, namespace: str, name: str, data: dict, secret_type: str = "Opaque", ctx: Context = None):
     """
     Create a Secret in the specified namespace.
 
@@ -50,6 +51,8 @@ def secret_create(context_name: str, namespace: str, name: str, data: dict, secr
         type=secret_type
     )
     created_secret = core_v1.create_namespaced_secret(namespace=namespace, body=secret)
+    if ctx:
+        await ctx.info(f"Created Secret {name} in namespace {namespace}")
     return {"name": created_secret.metadata.name, "status": "Created"}
 
 
@@ -80,7 +83,7 @@ def secret_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def secret_update(context_name: str, namespace: str, name: str, data: dict):
+async def secret_update(context_name: str, namespace: str, name: str, data: dict, ctx: Context):
     """
     Update an existing Secret in the specified namespace.
 
@@ -98,13 +101,14 @@ def secret_update(context_name: str, namespace: str, name: str, data: dict):
     encoded_data = {key: base64.b64encode(value.encode()).decode() for key, value in data.items()}
     secret.data.update(encoded_data)
     updated_secret = core_v1.replace_namespaced_secret(name=name, namespace=namespace, body=secret)
+    await ctx.info(f"Updated Secret {name} in namespace {namespace}")
     return {"name": updated_secret.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def secret_delete(context_name: str, namespace: str, name: str):
+async def secret_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a Secret from the specified namespace.
 
@@ -118,4 +122,5 @@ def secret_delete(context_name: str, namespace: str, name: str):
     """
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     core_v1.delete_namespaced_secret(name=name, namespace=namespace)
+    await ctx.warning(f"Deleted Secret {name} from namespace {namespace}")
     return {"name": name, "status": "Deleted"}

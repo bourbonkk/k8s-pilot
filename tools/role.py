@@ -3,6 +3,7 @@ from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 from core.permissions import check_readonly_permission
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -27,7 +28,7 @@ def role_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def role_create(context_name: str, namespace: str, name: str, rules: list):
+async def role_create(context_name: str, namespace: str, name: str, rules: list, ctx: Context):
     """
     Create a Role in the specified namespace.
 
@@ -46,6 +47,7 @@ def role_create(context_name: str, namespace: str, name: str, rules: list):
         rules=[V1PolicyRule(**rule) for rule in rules]
     )
     created_role = rbac_v1.create_namespaced_role(namespace=namespace, body=role)
+    await ctx.info(f"Created role {name} in {namespace}")
     return {"name": created_role.metadata.name, "status": "Created"}
 
 
@@ -74,7 +76,7 @@ def role_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def role_delete(context_name: str, namespace: str, name: str):
+async def role_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a Role from the specified namespace.
 
@@ -88,6 +90,7 @@ def role_delete(context_name: str, namespace: str, name: str):
     """
     rbac_v1: RbacAuthorizationV1Api = get_api_clients(context_name)["rbac"]
     rbac_v1.delete_namespaced_role(name=name, namespace=namespace)
+    await ctx.warning(f"Deleted role {name} from {namespace}")
     return {"name": name, "status": "Deleted"}
 
 
@@ -112,7 +115,7 @@ def clusterrole_list(context_name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def clusterrole_create(context_name: str, name: str, rules: list):
+async def clusterrole_create(context_name: str, name: str, rules: list, ctx: Context):
     """
     Create a ClusterRole in the cluster.
 
@@ -130,6 +133,7 @@ def clusterrole_create(context_name: str, name: str, rules: list):
         rules=[V1PolicyRule(**rule) for rule in rules]
     )
     created_clusterrole = rbac_v1.create_cluster_role(body=clusterrole)
+    await ctx.info(f"Created clusterrole {name}")
     return {"name": created_clusterrole.metadata.name, "status": "Created"}
 
 
@@ -157,7 +161,7 @@ def clusterrole_get(context_name: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def clusterrole_delete(context_name: str, name: str):
+async def clusterrole_delete(context_name: str, name: str, ctx: Context):
     """
     Delete a ClusterRole from the cluster.
 
@@ -170,4 +174,5 @@ def clusterrole_delete(context_name: str, name: str):
     """
     rbac_v1: RbacAuthorizationV1Api = get_api_clients(context_name)["rbac"]
     rbac_v1.delete_cluster_role(name=name)
+    await ctx.warning(f"Deleted clusterrole {name}")
     return {"name": name, "status": "Deleted"}

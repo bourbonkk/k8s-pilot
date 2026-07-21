@@ -6,6 +6,8 @@ from kubernetes.client.models.v1_taint import V1Taint
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
+from core.permissions import check_readonly_permission
 
 
 @mcp.tool()
@@ -95,7 +97,8 @@ def get_node_details(context_name: str, node_name: str):
 
 @mcp.tool()
 @use_current_context
-def add_node_label(context_name: str, node_name: str, label_key: str, label_value: str):
+@check_readonly_permission
+async def add_node_label(context_name: str, node_name: str, label_key: str, label_value: str, ctx: Context):
     """
     Add or update a label to a node.
 
@@ -108,6 +111,7 @@ def add_node_label(context_name: str, node_name: str, label_key: str, label_valu
     Returns:
         JSON string containing the updated node labels
     """
+    await ctx.info(f"Adding label '{label_key}={label_value}' to node '{node_name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Get the current node
@@ -135,12 +139,14 @@ def add_node_label(context_name: str, node_name: str, label_key: str, label_valu
         "labels": patched_node.metadata.labels
     }
 
+    await ctx.info(f"Successfully added label '{label_key}' to node '{node_name}'")
     return json.dumps(result)
 
 
 @mcp.tool()
 @use_current_context
-def remove_node_label(context_name: str, node_name: str, label_key: str):
+@check_readonly_permission
+async def remove_node_label(context_name: str, node_name: str, label_key: str, ctx: Context):
     """
     Remove a label from a node.
 
@@ -152,6 +158,7 @@ def remove_node_label(context_name: str, node_name: str, label_key: str):
     Returns:
         JSON string containing the updated node labels
     """
+    await ctx.warning(f"Removing label '{label_key}' from node '{node_name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Get the current node
@@ -184,13 +191,15 @@ def remove_node_label(context_name: str, node_name: str, label_key: str):
         "labels": patched_node.metadata.labels
     }
 
+    await ctx.info(f"Successfully removed label '{label_key}' from node '{node_name}'")
     return json.dumps(result)
 
 
 @mcp.tool()
 @use_current_context
-def add_node_taint(context_name: str, node_name: str, taint_key: str,
-                   taint_value: str, taint_effect: str):
+@check_readonly_permission
+async def add_node_taint(context_name: str, node_name: str, taint_key: str,
+                   taint_value: str, taint_effect: str, ctx: Context):
     """
     Add a taint to a node.
 
@@ -204,6 +213,7 @@ def add_node_taint(context_name: str, node_name: str, taint_key: str,
     Returns:
         JSON string containing the updated node taints
     """
+    await ctx.info(f"Adding taint '{taint_key}={taint_value}:{taint_effect}' to node '{node_name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Validate the taint effect
@@ -274,12 +284,14 @@ def add_node_taint(context_name: str, node_name: str, taint_key: str,
         "taints": response_taints
     }
 
+    await ctx.info(f"Successfully added taint '{taint_key}' to node '{node_name}'")
     return json.dumps(result)
 
 
 @mcp.tool()
 @use_current_context
-def remove_node_taint(context_name: str, node_name: str, taint_key: str):
+@check_readonly_permission
+async def remove_node_taint(context_name: str, node_name: str, taint_key: str, ctx: Context):
     """
     Remove a taint from a node.
 
@@ -291,6 +303,7 @@ def remove_node_taint(context_name: str, node_name: str, taint_key: str):
     Returns:
         JSON string containing the updated node taints
     """
+    await ctx.warning(f"Removing taint '{taint_key}' from node '{node_name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Get the current node
@@ -349,12 +362,14 @@ def remove_node_taint(context_name: str, node_name: str, taint_key: str):
         "taints": response_taints
     }
 
+    await ctx.info(f"Successfully removed taint '{taint_key}' from node '{node_name}'")
     return json.dumps(result)
 
 
 @mcp.tool()
 @use_current_context
-def cordon_node(context_name: str, node_name: str):
+@check_readonly_permission
+async def cordon_node(context_name: str, node_name: str, ctx: Context):
     """
     Cordon a node (mark as unschedulable).
 
@@ -365,6 +380,7 @@ def cordon_node(context_name: str, node_name: str):
     Returns:
         JSON string containing the result of the operation
     """
+    await ctx.warning(f"Cordoning node '{node_name}' - marking as unschedulable")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Get the current node
@@ -394,12 +410,14 @@ def cordon_node(context_name: str, node_name: str):
         "unschedulable": patched_node.spec.unschedulable
     }
 
+    await ctx.info(f"Successfully cordoned node '{node_name}'")
     return json.dumps(result)
 
 
 @mcp.tool()
 @use_current_context
-def uncordon_node(context_name: str, node_name: str):
+@check_readonly_permission
+async def uncordon_node(context_name: str, node_name: str, ctx: Context):
     """
     Uncordon a node (mark as schedulable).
 
@@ -410,6 +428,7 @@ def uncordon_node(context_name: str, node_name: str):
     Returns:
         JSON string containing the result of the operation
     """
+    await ctx.info(f"Uncordoning node '{node_name}' - marking as schedulable")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     # Get the current node
@@ -439,6 +458,7 @@ def uncordon_node(context_name: str, node_name: str):
         "unschedulable": patched_node.spec.unschedulable
     }
 
+    await ctx.info(f"Successfully uncordoned node '{node_name}'")
     return json.dumps(result)
 
 

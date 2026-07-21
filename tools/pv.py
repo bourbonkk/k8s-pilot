@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1PersistentVolume, V1ObjectMeta, V1Per
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
 from core.permissions import check_readonly_permission
 
 
@@ -26,7 +27,7 @@ def pv_list(context_name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pv_create(context_name: str, name: str, capacity: str, access_modes: list, storage_class: str, host_path: str):
+async def pv_create(context_name: str, name: str, capacity: str, access_modes: list, storage_class: str, host_path: str, ctx: Context):
     """
     Create a PersistentVolume in the cluster.
 
@@ -41,6 +42,7 @@ def pv_create(context_name: str, name: str, capacity: str, access_modes: list, s
     Returns:
         Status of the creation operation
     """
+    await ctx.info(f"Creating persistent volume '{name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     pv = V1PersistentVolume(
         metadata=V1ObjectMeta(name=name),
@@ -52,6 +54,7 @@ def pv_create(context_name: str, name: str, capacity: str, access_modes: list, s
         )
     )
     created_pv = core_v1.create_persistent_volume(body=pv)
+    await ctx.info(f"Successfully created persistent volume '{name}'")
     return {"name": created_pv.metadata.name, "status": "Created"}
 
 
@@ -82,7 +85,7 @@ def pv_get(context_name: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pv_update(context_name: str, name: str, labels: dict):
+async def pv_update(context_name: str, name: str, labels: dict, ctx: Context):
     """
     Update an existing PersistentVolume's metadata (e.g., labels).
 
@@ -94,17 +97,19 @@ def pv_update(context_name: str, name: str, labels: dict):
     Returns:
         Status of the update operation
     """
+    await ctx.info(f"Updating persistent volume '{name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     pv = core_v1.read_persistent_volume(name=name)
     pv.metadata.labels = labels
     updated_pv = core_v1.patch_persistent_volume(name=name, body={"metadata": {"labels": labels}})
+    await ctx.info(f"Successfully updated persistent volume '{name}'")
     return {"name": updated_pv.metadata.name, "status": "Updated", "labels": updated_pv.metadata.labels}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pv_delete(context_name: str, name: str):
+async def pv_delete(context_name: str, name: str, ctx: Context):
     """
     Delete a PersistentVolume from the cluster.
 
@@ -115,6 +120,8 @@ def pv_delete(context_name: str, name: str):
     Returns:
         Status of the deletion operation
     """
+    await ctx.warning(f"Deleting persistent volume '{name}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     core_v1.delete_persistent_volume(name=name)
+    await ctx.info(f"Successfully deleted persistent volume '{name}'")
     return {"name": name, "status": "Deleted"}

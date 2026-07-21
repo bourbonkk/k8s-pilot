@@ -1,12 +1,12 @@
 [project]
 name = "k8s-pilot"
-version = "1.0.0"
+version = "2.0.0"
 description = "k8s-pilot is a tool to help you manage Kubernetes clusters."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "kubernetes>=32.0.1",
-    "mcp[cli]>=1.6.0",
+    "mcp[cli]>=1.28.0,<2",
     "ruff>=0.11.5",
     "pyyaml",
 ]

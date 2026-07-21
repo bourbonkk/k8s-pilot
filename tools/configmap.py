@@ -3,6 +3,7 @@ from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 from kubernetes.client import CoreV1Api
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -27,7 +28,7 @@ def configmap_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def configmap_create(context_name: str, namespace: str, name: str, data: dict):
+async def configmap_create(context_name: str, namespace: str, name: str, data: dict, ctx: Context):
     """
     Create a ConfigMap in the specified namespace.
 
@@ -48,6 +49,7 @@ def configmap_create(context_name: str, namespace: str, name: str, data: dict):
         data=data
     )
     created_configmap = core_v1.create_namespaced_config_map(namespace=namespace, body=configmap)
+    await ctx.info(f"Created ConfigMap {name} in namespace {namespace}")
     return {"name": created_configmap.metadata.name, "status": "Created"}
 
 
@@ -73,7 +75,7 @@ def configmap_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def configmap_update(context_name: str, namespace: str, name: str, data: dict):
+async def configmap_update(context_name: str, namespace: str, name: str, data: dict, ctx: Context):
     """
     Update an existing ConfigMap in the specified namespace.
 
@@ -90,13 +92,14 @@ def configmap_update(context_name: str, namespace: str, name: str, data: dict):
     configmap = core_v1.read_namespaced_config_map(name=name, namespace=namespace)
     configmap.data = data
     updated_configmap = core_v1.replace_namespaced_config_map(name=name, namespace=namespace, body=configmap)
+    await ctx.info(f"Updated ConfigMap {name} in namespace {namespace}")
     return {"name": updated_configmap.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def configmap_delete(context_name: str, namespace: str, name: str):
+async def configmap_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a ConfigMap from the specified namespace.
 
@@ -110,4 +113,5 @@ def configmap_delete(context_name: str, namespace: str, name: str):
     """
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     core_v1.delete_namespaced_config_map(name=name, namespace=namespace)
+    await ctx.warning(f"Deleted ConfigMap {name} from namespace {namespace}")
     return {"name": name, "status": "Deleted"}
