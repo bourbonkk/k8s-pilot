@@ -307,7 +307,8 @@ async def pod_delete(context_name: str, namespace: str, name: str, ctx: Context 
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     try:
-        if ctx: await ctx.warning(f"Deleting pod '{name}' from namespace '{namespace}'")
+        if ctx:
+            await ctx.warning(f"Deleting pod '{name}' from namespace '{namespace}'")
         # Delete the pod
         api_response = core_v1.delete_namespaced_pod(
             name=name,
@@ -317,7 +318,8 @@ async def pod_delete(context_name: str, namespace: str, name: str, ctx: Context 
 
         # Check if the response indicates success
         if api_response.status == "Success":
-            if ctx: await ctx.info(f"Successfully deleted pod '{name}'")
+            if ctx:
+                await ctx.info(f"Successfully deleted pod '{name}'")
             return {
                 "name": name,
                 "namespace": namespace,

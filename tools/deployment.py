@@ -55,9 +55,11 @@ async def deployment_create(context_name: str, namespace: str, name: str, image:
             )
         }
     )
-    if ctx: await ctx.info(f"Creating deployment '{name}' in namespace '{namespace}'")
+    if ctx:
+        await ctx.info(f"Creating deployment '{name}' in namespace '{namespace}'")
     created_deployment = apps_v1.create_namespaced_deployment(namespace=namespace, body=deployment)
-    if ctx: await ctx.info(f"Successfully created deployment '{name}'")
+    if ctx:
+        await ctx.info(f"Successfully created deployment '{name}'")
     return {"name": created_deployment.metadata.name, "status": "Created"}
 
 
@@ -106,9 +108,11 @@ async def deployment_update(context_name: str, namespace: str, name: str, image:
     deployment = apps_v1.read_namespaced_deployment(name=name, namespace=namespace)
     deployment.spec.template.spec.containers[0].image = image
     deployment.spec.replicas = replicas
-    if ctx: await ctx.info(f"Updating deployment '{name}' in namespace '{namespace}'")
+    if ctx:
+        await ctx.info(f"Updating deployment '{name}' in namespace '{namespace}'")
     updated_deployment = apps_v1.replace_namespaced_deployment(name=name, namespace=namespace, body=deployment)
-    if ctx: await ctx.info(f"Successfully updated deployment '{name}'")
+    if ctx:
+        await ctx.info(f"Successfully updated deployment '{name}'")
     return {"name": updated_deployment.metadata.name, "status": "Updated"}
 
 
@@ -128,7 +132,9 @@ async def deployment_delete(context_name: str, namespace: str, name: str, ctx: C
         Status of the deletion operation
     """
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
-    if ctx: await ctx.warning(f"Deleting deployment '{name}' from namespace '{namespace}'")
+    if ctx:
+        await ctx.warning(f"Deleting deployment '{name}' from namespace '{namespace}'")
     apps_v1.delete_namespaced_deployment(name=name, namespace=namespace)
-    if ctx: await ctx.info(f"Successfully deleted deployment '{name}'")
+    if ctx:
+        await ctx.info(f"Successfully deleted deployment '{name}'")
     return {"name": name, "status": "Deleted"}
