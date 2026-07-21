@@ -1,4 +1,4 @@
-from core.config import parse_arguments
+from core.config import parse_arguments, get_transport
 from server.server import mcp  # noqa: F401
 
 if __name__ == "__main__":
@@ -6,4 +6,4 @@ if __name__ == "__main__":
     parse_arguments()
     
     # Start the MCP server
-    mcp.run(transport='stdio')
+    mcp.run(transport=get_transport())

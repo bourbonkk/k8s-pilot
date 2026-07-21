@@ -8,6 +8,7 @@ from core.context import use_current_context
 from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -67,7 +68,7 @@ def get_namespace_details(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[str, str]] = None):
+async def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[str, str]] = None, ctx: Context = None):
     """
     Create a new namespace.
 
@@ -98,6 +99,9 @@ def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[st
         # Create the namespace
         created_ns = core_v1.create_namespace(body=ns_body)
 
+        if ctx:
+            await ctx.info(f"Created Namespace {namespace}")
+
         result = {
             "name": created_ns.metadata.name,
             "status": created_ns.status.phase,
@@ -113,7 +117,7 @@ def create_namespace(context_name: str, namespace: str, labels: Optional[Dict[st
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def delete_namespace(context_name: str, namespace: str):
+async def delete_namespace(context_name: str, namespace: str, ctx: Context):
     """
     Delete a namespace and all resources within it.
 
@@ -138,6 +142,8 @@ def delete_namespace(context_name: str, namespace: str):
 
         # Delete the namespace
         core_v1.delete_namespace(namespace)
+        
+        await ctx.warning(f"Deleted Namespace {namespace}")
 
         result = {
             "name": namespace,
@@ -153,7 +159,7 @@ def delete_namespace(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def add_namespace_label(context_name: str, namespace: str, label_key: str, label_value: str):
+async def add_namespace_label(context_name: str, namespace: str, label_key: str, label_value: str, ctx: Context):
     """
     Add or update a label on a namespace.
 
@@ -188,6 +194,8 @@ def add_namespace_label(context_name: str, namespace: str, label_key: str, label
         }
 
         patched_ns = core_v1.patch_namespace(namespace, body)
+        
+        await ctx.info(f"Added label {label_key}={label_value} to Namespace {namespace}")
 
         result = {
             "name": patched_ns.metadata.name,
@@ -205,7 +213,7 @@ def add_namespace_label(context_name: str, namespace: str, label_key: str, label
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def remove_namespace_label(context_name: str, namespace: str, label_key: str):
+async def remove_namespace_label(context_name: str, namespace: str, label_key: str, ctx: Context):
     """
     Remove a label from a namespace.
 
@@ -244,6 +252,8 @@ def remove_namespace_label(context_name: str, namespace: str, label_key: str):
         }
 
         patched_ns = core_v1.patch_namespace(namespace, body)
+        
+        await ctx.info(f"Removed label {label_key} from Namespace {namespace}")
 
         result = {
             "name": patched_ns.metadata.name,
@@ -271,10 +281,8 @@ def list_namespace_resources(context_name: str, namespace: str):
     Returns:
         JSON string containing a summary of resources in the namespace
     """
-    from kubernetes.client import AppsV1Api
-
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
-    apps_v1 = get_api_clients(context_name).get("apps", AppsV1Api(get_api_clients(context_name)["api_client"]))
+    apps_v1 = get_api_clients(context_name)["apps"]
 
     try:
         # Check if namespace exists
@@ -337,10 +345,11 @@ def list_namespace_resources(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def set_namespace_resource_quota(context_name: str, namespace: str,
+async def set_namespace_resource_quota(context_name: str, namespace: str,
                                  cpu_limit: Optional[str] = None,
                                  memory_limit: Optional[str] = None,
-                                 pod_count: Optional[int] = None):
+                                 pod_count: Optional[int] = None,
+                                 ctx: Context = None):
     """
     Set or update resource quotas for a namespace.
 
@@ -397,6 +406,9 @@ def set_namespace_resource_quota(context_name: str, namespace: str,
             }
             updated_quota = core_v1.patch_namespaced_resource_quota(quota_name, namespace, body)
 
+            if ctx:
+                await ctx.info(f"Updated resource quota {quota_name} in namespace {namespace}")
+
             result = {
                 "name": updated_quota.metadata.name,
                 "namespace": namespace,
@@ -411,6 +423,9 @@ def set_namespace_resource_quota(context_name: str, namespace: str,
                 quota_body = V1ResourceQuota(metadata=quota_metadata, spec=quota_spec)
 
                 created_quota = core_v1.create_namespaced_resource_quota(namespace, quota_body)
+
+                if ctx:
+                    await ctx.info(f"Created resource quota {quota_name} in namespace {namespace}")
 
                 result = {
                     "name": created_quota.metadata.name,

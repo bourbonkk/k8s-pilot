@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 from functools import wraps
 from typing import Callable
@@ -55,9 +56,7 @@ def use_current_context(func: Callable) -> Callable:
     Returns:
         The decorated function
     """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
+    def _inject_defaults(kwargs):
         sig = inspect.signature(func)
         if 'context_name' in sig.parameters:
             if 'context_name' not in kwargs or kwargs['context_name'] is None:
@@ -67,6 +66,15 @@ def use_current_context(func: Callable) -> Callable:
                 if 'namespace' not in kwargs or kwargs['namespace'] is None:
                     kwargs['namespace'] = get_default_namespace(context_name)
 
-        return func(*args, **kwargs)
-
-    return wrapper
+    if asyncio.iscoroutinefunction(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            _inject_defaults(kwargs)
+            return await func(*args, **kwargs)
+        return async_wrapper
+    else:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            _inject_defaults(kwargs)
+            return func(*args, **kwargs)
+        return wrapper

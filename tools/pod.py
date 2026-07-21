@@ -2,6 +2,7 @@ from typing import Optional, Dict, List
 
 from core.context import use_current_context
 from core.permissions import check_readonly_permission
+from mcp.server.fastmcp import Context
 from server.server import mcp
 from kubernetes.client import CoreV1Api
 from core.kubeconfig import get_api_clients
@@ -176,11 +177,12 @@ def pod_detail(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pod_create(context_name: str, namespace: str, name: str, image: str,
+async def pod_create(context_name: str, namespace: str, name: str, image: str,
                labels: Optional[Dict[str, str]] = None,
                command: Optional[List[str]] = None,
                args: Optional[List[str]] = None,
-               env_vars: Optional[Dict[str, str]] = None):
+               env_vars: Optional[Dict[str, str]] = None,
+               ctx: Context = None):
     """
     Create a new pod in the specified namespace.
 
@@ -229,8 +231,10 @@ def pod_create(context_name: str, namespace: str, name: str, image: str,
         spec=pod_spec
     )
 
+    await ctx.info(f"Creating pod '{name}' in namespace '{namespace}'")
     # Create the pod in Kubernetes
     created_pod = core_v1.create_namespaced_pod(namespace=namespace, body=pod)
+    await ctx.info(f"Successfully created pod '{name}'")
 
     result = {
         "name": created_pod.metadata.name,
@@ -243,8 +247,9 @@ def pod_create(context_name: str, namespace: str, name: str, image: str,
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pod_update(context_name: str, namespace: str, name: str,
-               labels: Optional[Dict[str, str]] = None):
+async def pod_update(context_name: str, namespace: str, name: str,
+               labels: Optional[Dict[str, str]] = None,
+               ctx: Context = None):
     """
     Update an existing pod's metadata (only labels can be updated for an existing pod).
 
@@ -266,12 +271,14 @@ def pod_update(context_name: str, namespace: str, name: str,
     if labels:
         pod.metadata.labels = labels
 
+    await ctx.info(f"Updating pod '{name}' in namespace '{namespace}'")
     # Update the pod in Kubernetes
     updated_pod = core_v1.patch_namespaced_pod(
         name=name,
         namespace=namespace,
         body={"metadata": {"labels": labels}}
     )
+    await ctx.info(f"Successfully updated pod '{name}'")
 
     result = {
         "name": updated_pod.metadata.name,
@@ -285,7 +292,7 @@ def pod_update(context_name: str, namespace: str, name: str,
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pod_delete(context_name: str, namespace: str, name: str):
+async def pod_delete(context_name: str, namespace: str, name: str, ctx: Context = None):
     """
     Delete a pod from the specified namespace.
 
@@ -300,6 +307,7 @@ def pod_delete(context_name: str, namespace: str, name: str):
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
 
     try:
+        if ctx: await ctx.warning(f"Deleting pod '{name}' from namespace '{namespace}'")
         # Delete the pod
         api_response = core_v1.delete_namespaced_pod(
             name=name,
@@ -309,6 +317,7 @@ def pod_delete(context_name: str, namespace: str, name: str):
 
         # Check if the response indicates success
         if api_response.status == "Success":
+            if ctx: await ctx.info(f"Successfully deleted pod '{name}'")
             return {
                 "name": name,
                 "namespace": namespace,

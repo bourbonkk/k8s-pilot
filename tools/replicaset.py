@@ -3,6 +3,7 @@ from core.context import use_current_context
 from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -27,7 +28,7 @@ def replicaset_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def replicaset_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict):
+async def replicaset_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict, ctx: Context):
     """
     Create a ReplicaSet in the specified namespace.
 
@@ -42,6 +43,7 @@ def replicaset_create(context_name: str, namespace: str, name: str, image: str, 
     Returns:
         Status of the creation operation
     """
+    await ctx.info(f"Creating replicaset '{name}' in namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     replicaset = V1ReplicaSet(
         metadata=V1ObjectMeta(name=name, labels=labels),
@@ -55,6 +57,7 @@ def replicaset_create(context_name: str, namespace: str, name: str, image: str, 
         }
     )
     created_replicaset = apps_v1.create_namespaced_replica_set(namespace=namespace, body=replicaset)
+    await ctx.info(f"Successfully created replicaset '{name}'")
     return {"name": created_replicaset.metadata.name, "status": "Created"}
 
 
@@ -85,7 +88,7 @@ def replicaset_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def replicaset_update(context_name: str, namespace: str, name: str, image: str, replicas: int):
+async def replicaset_update(context_name: str, namespace: str, name: str, image: str, replicas: int, ctx: Context):
     """
     Update an existing ReplicaSet in the specified namespace.
 
@@ -99,18 +102,20 @@ def replicaset_update(context_name: str, namespace: str, name: str, image: str, 
     Returns:
         Status of the update operation
     """
+    await ctx.info(f"Updating replicaset '{name}' in namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     replicaset = apps_v1.read_namespaced_replica_set(name=name, namespace=namespace)
     replicaset.spec.template.spec.containers[0].image = image
     replicaset.spec.replicas = replicas
     updated_replicaset = apps_v1.replace_namespaced_replica_set(name=name, namespace=namespace, body=replicaset)
+    await ctx.info(f"Successfully updated replicaset '{name}'")
     return {"name": updated_replicaset.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def replicaset_delete(context_name: str, namespace: str, name: str):
+async def replicaset_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a ReplicaSet from the specified namespace.
 
@@ -122,6 +127,8 @@ def replicaset_delete(context_name: str, namespace: str, name: str):
     Returns:
         Status of the deletion operation
     """
+    await ctx.warning(f"Deleting replicaset '{name}' from namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     apps_v1.delete_namespaced_replica_set(name=name, namespace=namespace)
+    await ctx.info(f"Successfully deleted replicaset '{name}'")
     return {"name": name, "status": "Deleted"}

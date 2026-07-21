@@ -2,6 +2,7 @@ from kubernetes.client import CoreV1Api, V1PersistentVolumeClaim, V1ObjectMeta, 
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
 from core.permissions import check_readonly_permission
 
 
@@ -27,7 +28,7 @@ def pvc_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pvc_create(context_name: str, namespace: str, name: str, storage: str, access_modes: list, storage_class: str = None):
+async def pvc_create(context_name: str, namespace: str, name: str, storage: str, access_modes: list, storage_class: str = None, ctx: Context = None):
     """
     Create a PersistentVolumeClaim in the specified namespace.
 
@@ -42,6 +43,7 @@ def pvc_create(context_name: str, namespace: str, name: str, storage: str, acces
     Returns:
         Status of the creation operation
     """
+    await ctx.info(f"Creating persistent volume claim '{name}' in namespace '{namespace}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     pvc = V1PersistentVolumeClaim(
         metadata=V1ObjectMeta(name=name),
@@ -52,6 +54,7 @@ def pvc_create(context_name: str, namespace: str, name: str, storage: str, acces
         )
     )
     created_pvc = core_v1.create_namespaced_persistent_volume_claim(namespace=namespace, body=pvc)
+    await ctx.info(f"Successfully created persistent volume claim '{name}'")
     return {"name": created_pvc.metadata.name, "status": "Created"}
 
 
@@ -83,7 +86,7 @@ def pvc_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pvc_update(context_name: str, namespace: str, name: str, labels: dict):
+async def pvc_update(context_name: str, namespace: str, name: str, labels: dict, ctx: Context):
     """
     Update an existing PersistentVolumeClaim's metadata (e.g., labels).
 
@@ -96,17 +99,19 @@ def pvc_update(context_name: str, namespace: str, name: str, labels: dict):
     Returns:
         Status of the update operation
     """
+    await ctx.info(f"Updating persistent volume claim '{name}' in namespace '{namespace}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     pvc = core_v1.read_namespaced_persistent_volume_claim(name=name, namespace=namespace)
     pvc.metadata.labels = labels
     updated_pvc = core_v1.patch_namespaced_persistent_volume_claim(name=name, namespace=namespace, body={"metadata": {"labels": labels}})
+    await ctx.info(f"Successfully updated persistent volume claim '{name}'")
     return {"name": updated_pvc.metadata.name, "status": "Updated", "labels": updated_pvc.metadata.labels}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def pvc_delete(context_name: str, namespace: str, name: str):
+async def pvc_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a PersistentVolumeClaim from the specified namespace.
 
@@ -118,6 +123,8 @@ def pvc_delete(context_name: str, namespace: str, name: str):
     Returns:
         Status of the deletion operation
     """
+    await ctx.warning(f"Deleting persistent volume claim '{name}' from namespace '{namespace}'")
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     core_v1.delete_namespaced_persistent_volume_claim(name=name, namespace=namespace)
+    await ctx.info(f"Successfully deleted persistent volume claim '{name}'")
     return {"name": name, "status": "Deleted"}

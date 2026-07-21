@@ -3,6 +3,7 @@ from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 from core.permissions import check_readonly_permission
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -27,7 +28,7 @@ def service_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def service_create(context_name: str, namespace: str, name: str, selector: dict, ports: list, service_type: str = "ClusterIP"):
+async def service_create(context_name: str, namespace: str, name: str, selector: dict, ports: list, service_type: str = "ClusterIP", ctx: Context = None):
     """
     Create a Service in the specified namespace.
 
@@ -52,6 +53,7 @@ def service_create(context_name: str, namespace: str, name: str, selector: dict,
         )
     )
     created_service = core_v1.create_namespaced_service(namespace=namespace, body=service)
+    await ctx.info(f"Created service {name} in {namespace}")
     return {"name": created_service.metadata.name, "status": "Created"}
 
 
@@ -83,7 +85,7 @@ def service_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def service_update(context_name: str, namespace: str, name: str, labels: dict):
+async def service_update(context_name: str, namespace: str, name: str, labels: dict, ctx: Context):
     """
     Update an existing Service's metadata (e.g., labels).
 
@@ -100,13 +102,14 @@ def service_update(context_name: str, namespace: str, name: str, labels: dict):
     service = core_v1.read_namespaced_service(name=name, namespace=namespace)
     service.metadata.labels = labels
     updated_service = core_v1.patch_namespaced_service(name=name, namespace=namespace, body={"metadata": {"labels": labels}})
+    await ctx.info(f"Updated service {name} in {namespace}")
     return {"name": updated_service.metadata.name, "status": "Updated", "labels": updated_service.metadata.labels}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def service_delete(context_name: str, namespace: str, name: str):
+async def service_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a Service from the specified namespace.
 
@@ -120,4 +123,5 @@ def service_delete(context_name: str, namespace: str, name: str):
     """
     core_v1: CoreV1Api = get_api_clients(context_name)["core"]
     core_v1.delete_namespaced_service(name=name, namespace=namespace)
+    await ctx.warning(f"Deleted service {name} from {namespace}")
     return {"name": name, "status": "Deleted"}

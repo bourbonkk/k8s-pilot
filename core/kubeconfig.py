@@ -20,9 +20,12 @@ def get_api_clients(context_name: str) -> Dict[str, any]:
         config.load_kube_config(context=context_name, client_configuration=configuration)
         api_client = client.ApiClient(configuration=configuration)
         _client_cache[context_name] = {
+            "api_client": api_client,
             "core": client.CoreV1Api(api_client),
             "apps": client.AppsV1Api(api_client),
             "batch": client.BatchV1Api(api_client),
+            "networking": client.NetworkingV1Api(api_client),
+            "rbac": client.RbacAuthorizationV1Api(api_client),
         }
     return _client_cache[context_name]
 

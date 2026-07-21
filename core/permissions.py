@@ -1,3 +1,4 @@
+import asyncio
 import functools
 from typing import Callable, Any
 from core.config import is_readonly_mode
@@ -10,16 +11,28 @@ def check_readonly_permission(func: Callable) -> Callable:
     This decorator should be applied to all write operations (create, update, delete).
     In readonly mode, these operations will raise a PermissionError.
     """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
-        if is_readonly_mode():
-            operation_name = func.__name__
-            raise PermissionError(
-                f"Operation '{operation_name}' is not allowed in readonly mode. "
-                f"Only read/get operations are permitted when --readonly flag is used."
-            )
-        return func(*args, **kwargs)
-    return wrapper
+    if asyncio.iscoroutinefunction(func):
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs) -> Any:
+            if is_readonly_mode():
+                operation_name = func.__name__
+                raise PermissionError(
+                    f"Operation '{operation_name}' is not allowed in readonly mode. "
+                    f"Only read/get operations are permitted when --readonly flag is used."
+                )
+            return await func(*args, **kwargs)
+        return async_wrapper
+    else:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            if is_readonly_mode():
+                operation_name = func.__name__
+                raise PermissionError(
+                    f"Operation '{operation_name}' is not allowed in readonly mode. "
+                    f"Only read/get operations are permitted when --readonly flag is used."
+                )
+            return func(*args, **kwargs)
+        return wrapper
 
 
 def is_write_operation(func_name: str) -> bool:

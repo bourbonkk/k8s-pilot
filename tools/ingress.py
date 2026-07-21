@@ -4,6 +4,7 @@ from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
 from core.permissions import check_readonly_permission
+from mcp.server.fastmcp import Context
 
 
 @mcp.tool()
@@ -28,7 +29,7 @@ def ingress_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def ingress_create(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int):
+async def ingress_create(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int, ctx: Context):
     """
     Create an Ingress in the specified namespace.
 
@@ -66,6 +67,7 @@ def ingress_create(context_name: str, namespace: str, name: str, host: str, serv
         )
     )
     created_ingress = networking_v1.create_namespaced_ingress(namespace=namespace, body=ingress)
+    await ctx.info(f"Created ingress {name} in {namespace}")
     return {"name": created_ingress.metadata.name, "status": "Created"}
 
 
@@ -102,7 +104,7 @@ def ingress_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def ingress_update(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int):
+async def ingress_update(context_name: str, namespace: str, name: str, host: str, service_name: str, service_port: int, ctx: Context):
     """
     Update an existing Ingress in the specified namespace.
 
@@ -123,13 +125,14 @@ def ingress_update(context_name: str, namespace: str, name: str, host: str, serv
     ingress.spec.rules[0].http.paths[0].backend.service.name = service_name
     ingress.spec.rules[0].http.paths[0].backend.service.port.number = service_port
     updated_ingress = networking_v1.replace_namespaced_ingress(name=name, namespace=namespace, body=ingress)
+    await ctx.info(f"Updated ingress {name} in {namespace}")
     return {"name": updated_ingress.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def ingress_delete(context_name: str, namespace: str, name: str):
+async def ingress_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete an Ingress from the specified namespace.
 
@@ -143,4 +146,5 @@ def ingress_delete(context_name: str, namespace: str, name: str):
     """
     networking_v1: NetworkingV1Api = get_api_clients(context_name)["networking"]
     networking_v1.delete_namespaced_ingress(name=name, namespace=namespace)
+    await ctx.warning(f"Deleted ingress {name} from {namespace}")
     return {"name": name, "status": "Deleted"}

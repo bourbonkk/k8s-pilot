@@ -2,6 +2,7 @@ from kubernetes.client import AppsV1Api, V1Deployment, V1ObjectMeta, V1PodTempla
 from core.context import use_current_context
 from core.permissions import check_readonly_permission
 from core.kubeconfig import get_api_clients
+from mcp.server.fastmcp import Context
 from server.server import mcp
 
 
@@ -27,7 +28,7 @@ def deployment_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def deployment_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict):
+async def deployment_create(context_name: str, namespace: str, name: str, image: str, replicas: int, labels: dict, ctx: Context = None):
     """
     Create a Deployment in the specified namespace.
 
@@ -54,7 +55,9 @@ def deployment_create(context_name: str, namespace: str, name: str, image: str, 
             )
         }
     )
+    if ctx: await ctx.info(f"Creating deployment '{name}' in namespace '{namespace}'")
     created_deployment = apps_v1.create_namespaced_deployment(namespace=namespace, body=deployment)
+    if ctx: await ctx.info(f"Successfully created deployment '{name}'")
     return {"name": created_deployment.metadata.name, "status": "Created"}
 
 
@@ -85,7 +88,7 @@ def deployment_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def deployment_update(context_name: str, namespace: str, name: str, image: str, replicas: int):
+async def deployment_update(context_name: str, namespace: str, name: str, image: str, replicas: int, ctx: Context = None):
     """
     Update an existing Deployment in the specified namespace.
 
@@ -103,14 +106,16 @@ def deployment_update(context_name: str, namespace: str, name: str, image: str, 
     deployment = apps_v1.read_namespaced_deployment(name=name, namespace=namespace)
     deployment.spec.template.spec.containers[0].image = image
     deployment.spec.replicas = replicas
+    if ctx: await ctx.info(f"Updating deployment '{name}' in namespace '{namespace}'")
     updated_deployment = apps_v1.replace_namespaced_deployment(name=name, namespace=namespace, body=deployment)
+    if ctx: await ctx.info(f"Successfully updated deployment '{name}'")
     return {"name": updated_deployment.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def deployment_delete(context_name: str, namespace: str, name: str):
+async def deployment_delete(context_name: str, namespace: str, name: str, ctx: Context = None):
     """
     Delete a Deployment from the specified namespace.
 
@@ -123,5 +128,7 @@ def deployment_delete(context_name: str, namespace: str, name: str):
         Status of the deletion operation
     """
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
+    if ctx: await ctx.warning(f"Deleting deployment '{name}' from namespace '{namespace}'")
     apps_v1.delete_namespaced_deployment(name=name, namespace=namespace)
+    if ctx: await ctx.info(f"Successfully deleted deployment '{name}'")
     return {"name": name, "status": "Deleted"}

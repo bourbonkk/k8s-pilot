@@ -2,6 +2,7 @@ from kubernetes.client import AppsV1Api, V1DaemonSet, V1ObjectMeta, V1PodTemplat
 from core.context import use_current_context
 from core.kubeconfig import get_api_clients
 from server.server import mcp
+from mcp.server.fastmcp import Context
 from core.permissions import check_readonly_permission
 
 
@@ -27,7 +28,7 @@ def daemonset_list(context_name: str, namespace: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def daemonset_create(context_name: str, namespace: str, name: str, image: str, labels: dict):
+async def daemonset_create(context_name: str, namespace: str, name: str, image: str, labels: dict, ctx: Context):
     """
     Create a DaemonSet in the specified namespace.
 
@@ -41,6 +42,7 @@ def daemonset_create(context_name: str, namespace: str, name: str, image: str, l
     Returns:
         Status of the creation operation
     """
+    await ctx.info(f"Creating daemonset '{name}' in namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     daemonset = V1DaemonSet(
         metadata=V1ObjectMeta(name=name, labels=labels),
@@ -53,6 +55,7 @@ def daemonset_create(context_name: str, namespace: str, name: str, image: str, l
         }
     )
     created_daemonset = apps_v1.create_namespaced_daemon_set(namespace=namespace, body=daemonset)
+    await ctx.info(f"Successfully created daemonset '{name}'")
     return {"name": created_daemonset.metadata.name, "status": "Created"}
 
 
@@ -78,7 +81,7 @@ def daemonset_get(context_name: str, namespace: str, name: str):
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def daemonset_update(context_name: str, namespace: str, name: str, image: str):
+async def daemonset_update(context_name: str, namespace: str, name: str, image: str, ctx: Context):
     """
     Update an existing DaemonSet in the specified namespace.
 
@@ -91,17 +94,19 @@ def daemonset_update(context_name: str, namespace: str, name: str, image: str):
     Returns:
         Status of the update operation
     """
+    await ctx.info(f"Updating daemonset '{name}' in namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     daemonset = apps_v1.read_namespaced_daemon_set(name=name, namespace=namespace)
     daemonset.spec.template.spec.containers[0].image = image
     updated_daemonset = apps_v1.replace_namespaced_daemon_set(name=name, namespace=namespace, body=daemonset)
+    await ctx.info(f"Successfully updated daemonset '{name}'")
     return {"name": updated_daemonset.metadata.name, "status": "Updated"}
 
 
 @mcp.tool()
 @use_current_context
 @check_readonly_permission
-def daemonset_delete(context_name: str, namespace: str, name: str):
+async def daemonset_delete(context_name: str, namespace: str, name: str, ctx: Context):
     """
     Delete a DaemonSet from the specified namespace.
 
@@ -113,6 +118,8 @@ def daemonset_delete(context_name: str, namespace: str, name: str):
     Returns:
         Status of the deletion operation
     """
+    await ctx.warning(f"Deleting daemonset '{name}' from namespace '{namespace}'")
     apps_v1: AppsV1Api = get_api_clients(context_name)["apps"]
     apps_v1.delete_namespaced_daemon_set(name=name, namespace=namespace)
+    await ctx.info(f"Successfully deleted daemonset '{name}'")
     return {"name": name, "status": "Deleted"}
