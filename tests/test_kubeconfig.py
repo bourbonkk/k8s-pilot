@@ -1,8 +1,6 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from core import kubeconfig
-import yaml
-import os
 
 
 @pytest.fixture(autouse=True)
