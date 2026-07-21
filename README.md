@@ -47,7 +47,7 @@ git clone https://github.com/bourbonkk/k8s-pilot.git
 cd k8s-pilot
 
 # Launch with uv + MCP
-uv run --with mcp[cli] mcp run k8s_pilot.py
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py
 ```
 
 ## 🆕 What's New in v2.0
@@ -64,25 +64,25 @@ uv run --with mcp[cli] mcp run k8s_pilot.py
 ### Normal Mode (Full Access)
 ```bash
 # Start with full read/write access
-uv run --with mcp[cli] mcp run k8s_pilot.py
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py
 ```
 
 ### Readonly Mode (Safe Inspection)
 ```bash
 # Start in readonly mode - only read operations allowed
-uv run --with mcp[cli] python k8s_pilot.py --readonly
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --readonly
 ```
 
 ### Streamable HTTP Mode (Remote Access)
 ```bash
 # Start with Streamable HTTP transport for remote access
-uv run --with mcp[cli] python k8s_pilot.py --transport streamable-http
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --transport streamable-http
 ```
 
 ### Command Line Options
 ```bash
 # Show help
-uv run --with mcp[cli] python k8s_pilot.py --help
+uv run --with "mcp[cli]>=1.28.0,<2" python k8s_pilot.py --help
 ```
 
 ## Readonly Mode
@@ -138,8 +138,7 @@ Use this config to run k8s_pilot MCP server from within Claude:
         "run",
         "--with",
         "mcp[cli]>=1.28.0,<2",
-        "mcp",
-        "run",
+        "python",
         "k8s_pilot.py"
       ]
     }
